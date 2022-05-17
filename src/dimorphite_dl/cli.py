@@ -80,14 +80,14 @@ class SpecialEpilog(click.Group):
         formatter.write_usage(ctx.command_path, " ".join(pieces))
         formatter.write_text(" ")
         formatter.write_text(HEADER)
-        formatter.write_text(" ")
-        formatter.write_text(" ")
+        formatter.write_text(" \n")
 
 
 @click.command(help="Dimorphite 1.2.4: Creates models of appropriately protonated small molecules.\n"
                     "Apache 2.0 License. Copyright 2020 Jacob D. Durrant.",
                epilog=examples,
-               cls=SpecialEpilog, invoke_without_command=True)
+               cls=SpecialEpilog, invoke_without_command=True,
+               context_settings={'help_option_names': ['-h', '--help']})
 @click.option("--min_ph", metavar="MIN", type=float, default=6.4, required=False,
               help="minimum pH to consider (default: 6.4)")
 @click.option("--max_ph", metavar="MAX", type=float, default=8.4, required=False,
