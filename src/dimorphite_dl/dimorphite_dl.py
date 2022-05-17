@@ -794,22 +794,21 @@ class TestFuncs:
             "min_ph": -10000000,
             "max_ph": -10000000,
             "pka_precision": 0.5,
-            "smiles": "",
             "label_states": True,
             "silent": True
         }
 
         for smi, protonated, deprotonated, category in smis:
-            args["smiles"] = smi
-            TestFuncs.test_check(args, [protonated], ["PROTONATED"])
+            TestFuncs.test_check(args, smi, [protonated], ["PROTONATED"])
 
         # Test phosphates separately
         for smi, protonated, mix, deprotonated, category in smis_phos:
-            args["smiles"] = smi
-            TestFuncs.test_check(args, [protonated], ["PROTONATED"])
+            TestFuncs.test_check(args, smi, [protonated], ["PROTONATED"])
 
         args["min_ph"] = 10000000
         args["max_ph"] = 10000000
+
+        print(args)
 
         print("")
         print("Very Basic (pH 10000000)")
@@ -817,12 +816,10 @@ class TestFuncs:
         print("")
 
         for smi, protonated, deprotonated, category in smis:
-            args["smiles"] = smi
-            TestFuncs.test_check(args, [deprotonated], ["DEPROTONATED"])
+            TestFuncs.test_check(args, smi, [deprotonated], ["DEPROTONATED"])
 
         for smi, protonated, mix, deprotonated, category in smis_phos:
-            args["smiles"] = smi
-            TestFuncs.test_check(args, [deprotonated], ["DEPROTONATED"])
+            TestFuncs.test_check(args, smi, [deprotonated], ["DEPROTONATED"])
 
         print("")
         print("pH is Category pKa")
@@ -832,39 +829,31 @@ class TestFuncs:
         for smi, protonated, deprotonated, category in smis:
             avg_pka = average_pkas[category]
 
-            args["smiles"] = smi
             args["min_ph"] = avg_pka
             args["max_ph"] = avg_pka
 
-            TestFuncs.test_check(args, [protonated, deprotonated], ["BOTH"])
+            TestFuncs.test_check(args, smi, [protonated, deprotonated], ["BOTH"])
 
         for smi, protonated, mix, deprotonated, category in smis_phos:
-            args["smiles"] = smi
 
             avg_pka = average_pkas_phos[category][0]
             args["min_ph"] = avg_pka
             args["max_ph"] = avg_pka
 
-            TestFuncs.test_check(args, [mix, protonated], ["BOTH"])
+            TestFuncs.test_check(args, smi, [mix, protonated], ["BOTH"])
 
             avg_pka = average_pkas_phos[category][1]
             args["min_ph"] = avg_pka
             args["max_ph"] = avg_pka
 
-            TestFuncs.test_check(
-                args, [mix, deprotonated], ["DEPROTONATED", "DEPROTONATED"]
-            )
+            TestFuncs.test_check(args, smi, [mix, deprotonated], ["DEPROTONATED", "DEPROTONATED"])
 
-            avg_pka = 0.5 * (
-                average_pkas_phos[category][0] + average_pkas_phos[category][1]
-            )
+            avg_pka = 0.5 * (average_pkas_phos[category][0] + average_pkas_phos[category][1])
             args["min_ph"] = avg_pka
             args["max_ph"] = avg_pka
             args["pka_precision"] = 5  # Should give all three
 
-            TestFuncs.test_check(
-                args, [mix, deprotonated, protonated], ["BOTH", "BOTH"]
-            )
+            TestFuncs.test_check(args, smi, [mix, deprotonated, protonated], ["BOTH", "BOTH"])
 
         print("")
         print("Other Tests")
@@ -873,7 +862,7 @@ class TestFuncs:
 
         # Make sure no carbanion (old bug).
         smi = "Cc1nc2cc(-c3[nH]c4cc5ccccc5c5c4c3CCN(C(=O)O)[C@@H]5O)cc3c(=O)[nH][nH]c(n1)c23"
-        output = list(Protonator({"smiles": smi, "test": False, "silent": True}))
+        output = Protonator(silent=True).protonate(smi)
 
         if "[C-]" in "".join(output).upper():
             msg = "Processing " + smi + " produced a molecule with a carbanion!"
@@ -883,7 +872,7 @@ class TestFuncs:
 
         # Make sure max number of variants is limited (old bug).
         smi = "CCCC[C@@H](C(=O)N)NC(=O)[C@@H](NC(=O)[C@@H](NC(=O)[C@@H](NC(=O)[C@H](C(C)C)NC(=O)[C@@H](NC(=O)[C@H](Cc1c[nH]c2c1cccc2)NC(=O)[C@@H](NC(=O)[C@@H](Cc1ccc(cc1)O)N)CCC(=O)N)C)C)Cc1nc[nH]c1)Cc1ccccc1"
-        output = list(Protonator({"smiles": smi, "test": False, "silent": True}))
+        output = Protonator(silent=True).protonate(smi)
         if len(output) != 128:
             msg = "Processing " + smi + " produced more than 128 variants!"
             raise Exception(msg)
@@ -932,18 +921,7 @@ class TestFuncs:
         for example in specific_examples:
             smi = example[0]
             for ph, expected_output in example[1:]:
-                output = list(
-                    Protonator(
-                        {
-                            "smiles": smi,
-                            "test": False,
-                            "min_ph": ph,
-                            "max_ph": ph,
-                            "pka_precision": 0,
-                            "silent": True
-                        }
-                    )
-                )
+                output = Protonator(min_ph=ph, max_ph=ph, pka_precision=0, silent=True).protonate(smi)
                 if output[0].strip() == expected_output:
                     print(
                         "(CORRECT) "
@@ -966,10 +944,10 @@ class TestFuncs:
                     raise Exception(msg)
 
     @staticmethod
-    def test_check(args, expected_output, labels):
+    def test_check(args, smiles, expected_output, labels):
         """Tests most ionizable groups. The ones that can only loose or gain a single proton.
 
-        :param args: The arguments to pass to protonate()
+        :param args: The arguments to pass to the Protonator constructor
         :param expected_output: A list of the expected SMILES-strings output.
         :param labels: The labels. A list containing combo of BOTH, PROTONATED,
                     DEPROTONATED.
@@ -978,14 +956,14 @@ class TestFuncs:
         :raises Exception: Wrong labels.
         """
 
-        output = list(Protonator(args))
-        output = [o.split() for o in output]
+        output = list(Protonator(**args).protonate(smiles))
+        output = [[value] + output[1] if isinstance(output[1], list) else [value, output[1]] for value in output[0]]
 
         num_states = len(expected_output)
 
         if len(output) != num_states:
             msg = (
-                args["smiles"]
+                smiles
                 + " should have "
                 + str(num_states)
                 + " states at at pH "
@@ -998,7 +976,7 @@ class TestFuncs:
 
         if len(set([l[0] for l in output]) - set(expected_output)) != 0:
             msg = (
-                args["smiles"]
+                smiles
                 + " is not "
                 + " AND ".join(expected_output)
                 + " at pH "
@@ -1013,7 +991,7 @@ class TestFuncs:
 
         if len(set([l[1] for l in output]) - set(labels)) != 0:
             msg = (
-                args["smiles"]
+                smiles
                 + " not labeled as "
                 + " AND ".join(labels)
                 + "; it is "
@@ -1028,7 +1006,7 @@ class TestFuncs:
             "(CORRECT) "
             + ph_range_str.ljust(10)
             + " "
-            + args["smiles"]
+            + smiles
             + " => "
             + " AND ".join([l[0] for l in output])
         )
