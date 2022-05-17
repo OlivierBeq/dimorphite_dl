@@ -20,7 +20,7 @@ strings.
 import os
 import copy
 from io import StringIO
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 
 try:
@@ -171,6 +171,33 @@ class UtilFuncs:
         # cautious.
         return None if mol is None else mol
 
+    @staticmethod
+    def prepare_molecule(smiles_str: str) -> Optional[str]:
+        """Prepare the molecule for subsequent protonation.
+
+        :param string: smiles_str: The SMILES string.
+        """
+        # Convert from SMILES string to RDKIT Mol. This series of tests is
+        # to make sure the SMILES string is properly formed and to get it
+        # into a canonical form. Filter if failed.
+        mol = UtilFuncs.convert_smiles_str_to_mol(smiles_str)
+        if mol is None:
+            raise ValueError("Poorly formed SMILES string: " + smiles_str)
+        # Handle nuetralizing the molecules. Filter if failed.
+        mol = UtilFuncs.neutralize_mol(mol)
+        if mol is None:
+            raise ValueError("Poorly formed SMILES string: " + smiles_str)
+        # Remove the hydrogens.
+        try:
+            mol = Chem.RemoveHs(mol)
+        except:
+            raise ValueError("Poorly formed SMILES string: " + smiles_str)
+        if mol is None:
+            raise ValueError("Poorly formed SMILES string: " + smiles_str)
+        # Regenerate the smiles string (to standardize).
+        new_mol_string = Chem.MolToSmiles(mol, isomericSmiles=True)
+        return new_mol_string
+
 
 class LoadSMIFile(object):
     """A generator class for loading in the SMILES strings from a file, one at
@@ -235,45 +262,12 @@ class LoadSMIFile(object):
             # Generate mol object
             smiles_str = splits[0]
 
-            # Convert from SMILES string to RDKIT Mol. This series of tests is
-            # to make sure the SMILES string is properly formed and to get it
-            # into a canonical form. Filter if failed.
-            mol = UtilFuncs.convert_smiles_str_to_mol(smiles_str)
-            if mol is None:
-                if not self.silent:
-                    print(
-                        "WARNING: Skipping poorly formed SMILES string: " + line
-                    )
-                return self.next()
-
-            # Handle nuetralizing the molecules. Filter if failed.
-            mol = UtilFuncs.neutralize_mol(mol)
-            if mol is None:
-                if not self.silent:
-                    print(
-                        "WARNING: Skipping poorly formed SMILES string: " + line
-                    )
-                return self.next()
-
-            # Remove the hydrogens.
             try:
-                mol = Chem.RemoveHs(mol)
-            except:
+                new_mol_string = UtilFuncs.prepare_molecule(smiles_str)
+            except ValueError as e:
                 if not self.silent:
-                    print(
-                        "WARNING: Skipping poorly formed SMILES string: " + line
-                    )
+                    print(f"WARNING: {e.args[0]}")
                 return self.next()
-
-            if mol is None:
-                if not self.silent:
-                    print(
-                        "WARNING: Skipping poorly formed SMILES string: " + line
-                    )
-                return self.next()
-
-            # Regenerate the smiles string (to standardize).
-            new_mol_string = Chem.MolToSmiles(mol, isomericSmiles=True)
 
             return {"smiles": new_mol_string, "data": splits[1:]}
         else:
@@ -305,12 +299,16 @@ class Protonator(object):
         if not silent:
             print_header()
 
-    def protonate(self, smiles: Union[str, List[str]]) -> Union[List[str], List[Tuple[str, str]]]:
+    def protonate(self, smiles: str) -> Union[List[str], List[Tuple[str, str]]]:
         """Run the protonation process on the given SMILES.
 
         :param smiles: SMILES of molecule
         :return: protonated SMILES
         """
+        if not isinstance(smiles, str):
+            raise TypeError('only SMILES can be prepared')
+        # Prepare molecules
+        smiles = UtilFuncs.prepare_molecule(smiles)
         # Dimorphite-DL may protonate some sites in ways that produce invalid
         # SMILES. We need to keep track of all smiles so we can "rewind" to
         # the last valid one, should things go south.
