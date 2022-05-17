@@ -94,9 +94,9 @@ class SpecialEpilog(click.Group):
               help="maximum pH to consider (default: 8.4)")
 @click.option("--pka_precision", metavar="PRE", type=float, default=1.0, required=False,
               help="pKa precision factor (number of standard devations, default: 1.0)")
-@click.option("--smiles", metavar="SMI", type=str, required=True, cls=Mutex, not_required_if=['smiles_file'],
+@click.option("--smiles", metavar="SMI", type=str, required=True, cls=Mutex, not_required_if=['smiles_file', 'test'],
               help="SMILES string to protonate")
-@click.option("--smiles_file", metavar="FILE", type=str, required=True, cls=Mutex, not_required_if=['smiles'],
+@click.option("--smiles_file", metavar="FILE", type=str, required=True, cls=Mutex, not_required_if=['smiles', 'test'],
               help="file that contains SMILES strings to protonate")
 @click.option("--output_file", metavar="FILE", type=str, required=False,
               help="output file to write protonated SMILES (optional)")
