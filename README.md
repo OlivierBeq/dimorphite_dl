@@ -3,7 +3,7 @@ Dimorphite-DL
 
 This repository is a modified version of [Durrant Lab](https://durrantlab.pitt.edu/)'s original [Dimorphite-DL](https://git.durrantlab.pitt.edu/jdurrant/dimorphite_dl) implementation ([original article](https://www.doi.org/10.1186/s13321-019-0336-9)).
 
-Changes were brought to facilitate its installation and integration in bigger cheminformatics projetcs.
+Changes were brought to facilitate its installation and integration in bigger cheminformatics projects (see [CHANGES.md](CHANGES.md)).
 
 What is it?
 -----------
