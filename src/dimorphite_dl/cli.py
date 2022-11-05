@@ -12,11 +12,11 @@ from .dimorphite_dl import *
 
 examples = """Examples:
 
-    python dimorphite_dl.py --smiles_file sample_molecules.smi
-    python dimorphite_dl.py --smiles "CCC(=O)O" --min_ph -3.0 --max_ph -2.0
-    python dimorphite_dl.py --smiles "CCCN" --min_ph -3.0 --max_ph -2.0 --output_file output.smi
-    python dimorphite_dl.py --smiles_file sample_molecules.smi --pka_precision 2.0 --label_states
-    python dimorphite_dl.py --test"""
+    dimorphite --smiles_file sample_molecules.smi
+    dimorphite --smiles "CCC(=O)O" --min_ph -3.0 --max_ph -2.0
+    dimorphite --smiles "CCCN" --min_ph -3.0 --max_ph -2.0 --output_file output.smi
+    dimorphite --smiles_file sample_molecules.smi --pka_precision 2.0 --label_states
+    dimorphite --test"""
 
 
 class Mutex(click.Option):
@@ -50,8 +50,8 @@ class Mutex(click.Option):
                     if current_opt:
                         raise click.UsageError(
                             "Illegal usage: '" + str(self.name)
-                            + "' is mutually exclusive with "
-                            + str(other_param.human_readable_name) + "."
+                            + "' is mutually exclusive with '"
+                            + str(other_param.human_readable_name) + "'."
                         )
                     else:
                         self.required = None  # Override requirement
@@ -95,7 +95,7 @@ class SpecialEpilog(click.Group):
 @click.option("--pka_precision", metavar="PRE", type=float, default=1.0, required=False,
               help="pKa precision factor (number of standard devations, default: 1.0)")
 @click.option("--smiles", metavar="SMI", type=str, required=True, cls=Mutex, not_required_if=['smiles_file', 'test'],
-              help="SMILES string to protonate")
+              help="SMILES string to protonate", multiple=True)
 @click.option("--smiles_file", metavar="FILE", type=str, required=True, cls=Mutex, not_required_if=['smiles', 'test'],
               help="file that contains SMILES strings to protonate")
 @click.option("--output_file", metavar="FILE", type=str, required=False,
@@ -122,9 +122,9 @@ def main(min_ph: float = 6.4,
         TestFuncs.test()
         return
     # Main part
-    if smiles is not None:
-        if isinstance(smiles, str):
-            smiles_file = StringIO(smiles)
+    smiles = list(smiles)
+    if len(smiles) > 0:
+        smiles_file = StringIO('\n'.join(smiles))
     # Read in data in SMI format
     smiles_and_data = LoadSMIFile(smiles_file, silent=silent)
     # Separate SMILES from data
@@ -159,7 +159,7 @@ def main(min_ph: float = 6.4,
         for i in range(len(protonated_smiles)):
             if protonated_smiles[i] is not None:
                 data = all_data[i]
-                line = [protonated_smiles[i]] if isinstance(protonated_smiles[i], str)\
+                line = [protonated_smiles[i]] if isinstance(protonated_smiles[i], str) \
                     else protonated_smiles[i]
                 if len(data) > 0:
                     line = '\n'.join([f"{smi}\t" + '\t'.join(data) for smi in line])

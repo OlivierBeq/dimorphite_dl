@@ -86,11 +86,11 @@ CLI usage examples
 --------
 
 ```
-  dimorphite_dl --smiles_file sample_molecules.smi
-  dimorphite_dl --smiles "CCC(=O)O" --min_ph -3.0 --max_ph -2.0
-  dimorphite_dl --smiles "CCCN" --min_ph -3.0 --max_ph -2.0 --output_file output.smi
-  dimorphite_dl --smiles_file sample_molecules.smi --pka_precision 2.0 --label_states
-  dimorphite_dl --test
+  dimorphite --smiles_file sample_molecules.smi
+  dimorphite --smiles "CCC(=O)O" --min_ph -3.0 --max_ph -2.0
+  dimorphite --smiles "CCCN" --min_ph -3.0 --max_ph -2.0 --output_file output.smi
+  dimorphite --smiles_file sample_molecules.smi --pka_precision 2.0 --label_states
+  dimorphite --test
 ```
 
 Advanced Usage
