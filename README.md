@@ -40,11 +40,11 @@ Installation
 
 This modified version of Dimorphite-DL can be installed using [pip](https://pip.pypa.io/en/stable/getting-started/):
 ```bash
-pip install https://github.com/OlivierBeq/dimorphite_dl/tarball/master
+pip install dimorphite-ojmb
 ```
 If the above does not work, you can run the installation like so:
 ```bash
-python -m pip install https://github.com/OlivierBeq/dimorphite_dl/tarball/master
+python -m pip install dimorphite-ojmb
 ```
 
 
