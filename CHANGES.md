@@ -7,6 +7,7 @@ Changes
 * The API has been reworked to allow calling subcomponents of Dimorphite-DL and its packaging.
 * Removal of the function `run_with_mol_list` as `run` now supports lists of SMILES.
 * The CLI now relies on [Click](https://click.palletsprojects.com/).
+* Support input molecules. 
 
 
 1.2.4

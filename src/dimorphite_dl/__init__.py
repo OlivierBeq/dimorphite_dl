@@ -2,4 +2,4 @@
 
 from .dimorphite_dl import *
 
-__version__ = "1.2.5"
+__version__ = "1.2.5-post1"

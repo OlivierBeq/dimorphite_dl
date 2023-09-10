@@ -1012,7 +1012,7 @@ class TestFuncs:
         )
 
 
-def run(smiles: Union[str, List[str]],
+def run(smiles: Union[str, List[str], Chem.Mol, List[Chem.Mol]],
         min_ph: float = 6.4,
         max_ph: float = 8.4,
         pka_precision: float = 1.0,
@@ -1029,10 +1029,14 @@ def run(smiles: Union[str, List[str]],
     :param label_states: label protonated SMILES with target state (i.e., "DEPROTONATED", "PROTONATED", or "BOTH")
     :param silent: do not print any messages to the screen
     """
+    if smiles is None:
+        return [None]
     if not isinstance(smiles, (str, list)):
         raise ValueError('smiles must be a string of characters or a list of strings')
     if not isinstance(smiles, list):
         smiles = [smiles]
+    # Convert to SMILES
+    smiles = [x if isinstance(x, str) else Chem.MolToSmiles(x) for x in smiles]
     # Create protonator iterator
     protonator = Protonator(min_ph=min_ph, max_ph=max_ph, pka_precision=pka_precision,
                             max_variants=max_variants, label_states=label_states,
