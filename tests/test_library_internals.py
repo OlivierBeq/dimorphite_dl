@@ -30,13 +30,13 @@ def test_convert_smiles_str_to_mol_rejects_non_str():
 def test_load_smi_file_skips_blank_lines():
     loader = LoadSMIFile(StringIO("\nCCCN\n"), silent=True)
     entries = list(loader)
-    assert [e["smiles"] for e in entries] == ["CCCN"]
+    assert [entry["smiles"] for entry in entries] == ["CCCN"]
 
 
 def test_load_smi_file_warns_on_malformed_line(capsys):
     loader = LoadSMIFile(StringIO("not_a_smiles\nCCCN\n"), silent=False)
     entries = list(loader)
-    assert [e["smiles"] for e in entries] == ["CCCN"]
+    assert [entry["smiles"] for entry in entries] == ["CCCN"]
     assert "WARNING" in capsys.readouterr().out
 
 

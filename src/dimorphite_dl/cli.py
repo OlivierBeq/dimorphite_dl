@@ -19,7 +19,7 @@ from click import ParameterSource
 
 from .dimorphite_dl import *
 
-examples = """Examples:
+EXAMPLES = """Examples:
 
     dimorphite --smiles_file sample_molecules.smi
     dimorphite --smiles "CCC(=O)O" --min_ph -3.0 --max_ph -2.0
@@ -125,7 +125,7 @@ class SpecialEpilog(click.Group):
 @click.command(
     help="Dimorphite 1.2.4: Creates models of appropriately protonated small molecules.\n"
     "Apache 2.0 License. Copyright 2020 Jacob D. Durrant.",
-    epilog=examples,
+    epilog=EXAMPLES,
     cls=SpecialEpilog,
     invoke_without_command=True,
     context_settings={"help_option_names": ["-h", "--help"]},

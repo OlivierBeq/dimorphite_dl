@@ -72,13 +72,13 @@ def assert_protonation():
             f"{smiles} should have {num_states} states at pH {args['min_ph']}: {output}"
         )
 
-        got_smiles = {o[0] for o in output}
+        got_smiles = {entry[0] for entry in output}
         assert not got_smiles - set(expected_output), (
             f"{smiles} is not {' AND '.join(expected_output)} at pH "
             f"{args['min_ph']} - {args['max_ph']}; it is {' AND '.join(got_smiles)}"
         )
 
-        got_labels = {o[1] for o in output}
+        got_labels = {entry[1] for entry in output}
         assert not got_labels - set(labels), (
             f"{smiles} not labeled as {' AND '.join(labels)}; it is {' AND '.join(got_labels)}"
         )

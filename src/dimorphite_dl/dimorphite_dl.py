@@ -218,10 +218,10 @@ class LoadSMIFile:
 
         if isinstance(filename, str):
             # It's a filename
-            self.f = open(filename)
+            self.file = open(filename)
         else:
             # It's a file object (i.e., StringIO)
-            self.f = filename
+            self.file = filename
 
     def __iter__(self):
         """Returns this generator object.
@@ -253,11 +253,11 @@ class LoadSMIFile:
         :rtype: dict
         """
 
-        line = self.f.readline()
+        line = self.file.readline()
 
         if line == "":
             # EOF
-            self.f.close()
+            self.file.close()
             raise StopIteration()
 
         # Divide line into smi and data
@@ -344,7 +344,7 @@ class Protonator:
                 # Go through each of these new molecules and add them to the
                 # properly_formed_smi_found, in case you generate a poorly
                 # formed SMILES in the future and have to "rewind."
-                properly_formed_smi_found += [Chem.MolToSmiles(m) for m in new_mols]
+                properly_formed_smi_found += [Chem.MolToSmiles(mol) for mol in new_mols]
         else:
             # Deprotonate the mols (because protonate_site never called to do it).
             mol_used_to_idx_sites = Chem.RemoveHs(mol_used_to_idx_sites)
@@ -360,13 +360,13 @@ class Protonator:
         # stdev value is big enough, for example, will generate two identical
         # BOTH states. Let's remove this redundancy.
         new_smis = list(
-            {Chem.MolToSmiles(m, isomericSmiles=True, canonical=True) for m in new_mols}
+            {Chem.MolToSmiles(mol, isomericSmiles=True, canonical=True) for mol in new_mols}
         )
 
         # Sometimes Dimorphite-DL generates molecules that aren't actually
         # possible. Simply convert these to mol objects to eliminate the bad
         # ones (that are None).
-        new_smis = [s for s in new_smis if UtilFuncs.convert_smiles_str_to_mol(s) is not None]
+        new_smis = [smi for smi in new_smis if UtilFuncs.convert_smiles_str_to_mol(smi) is not None]
 
         # If there are no smi left, return the input one at the very least.
         # All generated forms have apparently been judged
@@ -381,7 +381,7 @@ class Protonator:
         # If the user wants to see the target states, add those to the ends of
         # each line.
         if self.label_states:
-            states = [x[1] for x in sites]
+            states = [site[1] for site in sites]
             if len(states) == 0:
                 states = None
             elif len(states) == 1:
@@ -602,7 +602,9 @@ class ProtSubstructFuncs:
 
                 atom = mol_copy.GetAtomWithIdx(idx)
 
-                explicit_bond_order_total = sum([b.GetBondTypeAsDouble() for b in atom.GetBonds()])
+                explicit_bond_order_total = sum(
+                    [bond.GetBondTypeAsDouble() for bond in atom.GetBonds()]
+                )
 
                 # Assign the protonation charge, with special care for
                 # nitrogens
@@ -737,7 +739,10 @@ def run(
     if not isinstance(smiles, list):
         smiles = [smiles]
     # Convert to SMILES
-    smiles = [x if isinstance(x, str) else Chem.MolToSmiles(x) for x in smiles]
+    smiles = [
+        smi_or_mol if isinstance(smi_or_mol, str) else Chem.MolToSmiles(smi_or_mol)
+        for smi_or_mol in smiles
+    ]
     # Create protonator iterator
     protonator = Protonator(
         min_ph=min_ph,
