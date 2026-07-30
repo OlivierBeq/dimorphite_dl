@@ -73,6 +73,10 @@ ignore = ["E501"]  # enforced by ruff format instead
 
 [tool.ruff.lint.per-file-ignores]
 "tests/data.py" = ["E501"]  # long aligned test-data tuples
+# cli.py and __init__.py deliberately rely on `from .dimorphite_dl import *`
+# to expose the library's public API through their namespace.
+"src/dimorphite_dl/cli.py" = ["F403", "F405"]
+"src/dimorphite_dl/__init__.py" = ["F403"]
 
 [tool.ruff.format]
 quote-style = "double"

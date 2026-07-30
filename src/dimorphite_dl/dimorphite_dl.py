@@ -22,36 +22,36 @@ This script identifies and enumerates the possible protonation sites of SMILES
 strings.
 """
 
-import os
 import copy
-from io import StringIO
-from typing import List, Optional, Tuple, Union
-
+import pathlib
+from io import StringIO  # noqa: F401 -- re-exported for cli.py via `from .dimorphite_dl import *`
 
 try:
     import rdkit
-    from rdkit import Chem
-    from rdkit.Chem import AllChem
 
     # Disable the unnecessary RDKit warnings
-    from rdkit import RDLogger
+    from rdkit import Chem, RDLogger
+    from rdkit.Chem import AllChem
 
     RDLogger.DisableLog("rdApp.*")
-except:
+except Exception:
     msg = "Dimorphite-DL requires RDKit. See https://www.rdkit.org/"
     print(msg)
-    raise Exception(msg)
+    raise Exception(msg) from None
 
 
-HEADER = ("\nIf you use Dimorphite-DL in your research, please cite:\n"
-          "Ropp PJ, Kaminsky JC, Yablonski S, Durrant JD (2019) Dimorphite-DL: An\n"
-          "open-source program for enumerating the ionization states of drug-like small\n"
-          "molecules. J Cheminform 11:14. doi:10.1186/s13321-019-0336-9.\n")
+HEADER = (
+    "\nIf you use Dimorphite-DL in your research, please cite:\n"
+    "Ropp PJ, Kaminsky JC, Yablonski S, Durrant JD (2019) Dimorphite-DL: An\n"
+    "open-source program for enumerating the ionization states of drug-like small\n"
+    "molecules. J Cheminform 11:14. doi:10.1186/s13321-019-0336-9.\n"
+)
 
 
 def print_header():
     """Prints out header information."""
     print(HEADER)
+
 
 class UtilFuncs:
     """A namespace to store functions for manipulating mol objects. To keep
@@ -95,7 +95,7 @@ class UtilFuncs:
             [
                 "[H]-[N:1]-[N:2]#[N:3]",
                 "[N:1]=[N+1:2]=[N:3]-[H]",
-            ]  # To handle bad azide. R-N-N#N should
+            ],  # To handle bad azide. R-N-N#N should
             # be R-N=[N+]=N
         ]
 
@@ -159,7 +159,7 @@ class UtilFuncs:
 
         # Check that there are no type errors, ie Nones or non-string A
         # non-string type will cause RDKit to hard crash
-        if smiles_str is None or type(smiles_str) is not str:
+        if smiles_str is None or not isinstance(smiles_str, str):
             return None
 
         # Try to fix azides here. They are just tricky to deal with.
@@ -177,10 +177,10 @@ class UtilFuncs:
         return None if mol is None else mol
 
     @staticmethod
-    def prepare_molecule(smiles_str: str) -> Optional[str]:
+    def prepare_molecule(smiles_str: str) -> str | None:
         """Prepare the molecule for subsequent protonation.
 
-        :param string: smiles_str: The SMILES string.
+        :param smiles_str: The SMILES string.
         """
         # Convert from SMILES string to RDKIT Mol. This series of tests is
         # to make sure the SMILES string is properly formed and to get it
@@ -195,8 +195,8 @@ class UtilFuncs:
         # Remove the hydrogens.
         try:
             mol = Chem.RemoveHs(mol)
-        except:
-            raise ValueError("Poorly formed SMILES string: " + smiles_str)
+        except Exception:
+            raise ValueError("Poorly formed SMILES string: " + smiles_str) from None
         if mol is None:
             raise ValueError("Poorly formed SMILES string: " + smiles_str)
         # Regenerate the smiles string (to standardize).
@@ -204,22 +204,21 @@ class UtilFuncs:
         return new_mol_string
 
 
-class LoadSMIFile(object):
+class LoadSMIFile:
     """A generator class for loading in the SMILES strings from a file, one at
     a time."""
 
-    def __init__(self, filename, silent: bool = False):
+    def __init__(self, filename: str | StringIO, silent: bool = False):
         """Initializes this class.
 
         :param filename: The filename or file object (i.e., StringIO).
-        :type filename: str or StringIO
         """
 
         self.silent = silent
 
-        if type(filename) is str:
+        if isinstance(filename, str):
             # It's a filename
-            self.f = open(filename, "r")
+            self.f = open(filename)
         else:
             # It's a file object (i.e., StringIO)
             self.f = filename
@@ -234,7 +233,7 @@ class LoadSMIFile(object):
         return self
 
     def __next__(self):
-        """Ensure Python3 compatibility.
+        """Delegates to :meth:`next` for the iterator protocol.
 
         :return: A dict, where the "smiles" key contains the canonical SMILES
                  string and the "data" key contains the remaining information
@@ -280,16 +279,18 @@ class LoadSMIFile(object):
             return self.next()
 
 
-class Protonator(object):
+class Protonator:
     """A generator class for protonating SMILES strings, one at a time."""
 
-    def __init__(self,
-                 min_ph: float = 6.4,
-                 max_ph: float = 8.4,
-                 pka_precision: float = 1.0,
-                 max_variants: int = 128,
-                 label_states: bool = False,
-                 silent: bool = False):
+    def __init__(
+        self,
+        min_ph: float = 6.4,
+        max_ph: float = 8.4,
+        pka_precision: float = 1.0,
+        max_variants: int = 128,
+        label_states: bool = False,
+        silent: bool = False,
+    ):
         """Initialize the protonation state generator."""
 
         self.min_ph = min_ph
@@ -298,20 +299,20 @@ class Protonator(object):
         self.max_variants = max_variants
         self.label_states = label_states
         self.silent = silent
-        self.subs = ProtSubstructFuncs.load_protonation_substructs_calc_state_for_ph(self.min_ph,
-                                                                                     self.max_ph,
-                                                                                     self.pka_precision)
+        self.subs = ProtSubstructFuncs.load_protonation_substructs_calc_state_for_ph(
+            self.min_ph, self.max_ph, self.pka_precision
+        )
         if not silent:
             print_header()
 
-    def protonate(self, smiles: str) -> Union[List[str], List[Tuple[str, str]]]:
+    def protonate(self, smiles: str) -> list[str] | list[tuple[str, str]]:
         """Run the protonation process on the given SMILES.
 
         :param smiles: SMILES of molecule
         :return: protonated SMILES
         """
         if not isinstance(smiles, str):
-            raise TypeError('only SMILES can be prepared')
+            raise TypeError("only SMILES can be prepared")
         # Prepare molecules
         smiles = UtilFuncs.prepare_molecule(smiles)
         # Dimorphite-DL may protonate some sites in ways that produce invalid
@@ -338,7 +339,9 @@ class Protonator(object):
                 if len(new_mols) > self.max_variants:
                     new_mols = new_mols[: self.max_variants]
                     if not self.silent:
-                        print(f"WARNING: Limited number of variants to {self.max_variants}: {smiles}")
+                        print(
+                            f"WARNING: Limited number of variants to {self.max_variants}: {smiles}"
+                        )
                 # Go through each of these new molecules and add them to the
                 # properly_formed_smi_found, in case you generate a poorly
                 # formed SMILES in the future and have to "rewind."
@@ -357,7 +360,9 @@ class Protonator(object):
         # Phosphonates, when the pH is between the two pKa values and the
         # stdev value is big enough, for example, will generate two identical
         # BOTH states. Let's remove this redundancy.
-        new_smis = list(set(Chem.MolToSmiles(m, isomericSmiles=True, canonical=True) for m in new_mols))
+        new_smis = list(
+            {Chem.MolToSmiles(m, isomericSmiles=True, canonical=True) for m in new_mols}
+        )
 
         # Sometimes Dimorphite-DL generates molecules that aren't actually
         # possible. Simply convert these to mol objects to eliminate the bad
@@ -399,20 +404,16 @@ class ProtSubstructFuncs:
                  except blank lines and lines that start with "#"
         """
 
-        pwd = os.path.dirname(os.path.realpath(__file__))
-        site_structures_file = "{}/{}".format(pwd, "site_substructures.smarts")
-        lines = [
-            l
-            for l in open(site_structures_file, "r")
-            if l.strip() != "" and not l.startswith("#")
-        ]
+        site_structures_file = pathlib.Path(__file__).resolve().parent / "site_substructures.smarts"
+        with open(site_structures_file) as f:
+            lines = [line for line in f if line.strip() != "" and not line.startswith("#")]
 
         return lines
 
     @staticmethod
-    def load_protonation_substructs_calc_state_for_ph(min_ph: float = 6.4,
-                                                      max_ph: float = 8.4,
-                                                      pka_std_range: float = 1):
+    def load_protonation_substructs_calc_state_for_ph(
+        min_ph: float = 6.4, max_ph: float = 8.4, pka_std_range: float = 1
+    ):
         """A pre-calculated list of R-groups with protonation sites, with their
         likely pKa bins.
 
@@ -500,8 +501,8 @@ class ProtSubstructFuncs:
         # Try to Add hydrogens. if failed return []
         try:
             mol_used_to_idx_sites = Chem.AddHs(mol_used_to_idx_sites)
-        except:
-            raise ValueError("ERROR: Could not add hydrogen atoms  ", smi)
+        except Exception:
+            raise ValueError("ERROR: Could not add hydrogen atoms  ", smi) from None
 
         # Check adding Hs worked
         if mol_used_to_idx_sites is None:
@@ -524,7 +525,7 @@ class ProtSubstructFuncs:
                         category = site[1]
                         new_site = (match[proton], category, item["name"])
 
-                        if not new_site in protonation_sites:
+                        if new_site not in protonation_sites:
                             # Because sites must be unique.
                             protonation_sites.append(new_site)
 
@@ -593,16 +594,16 @@ class ProtSubstructFuncs:
                 # Remove hydrogen atoms.
                 try:
                     mol_copy = Chem.RemoveHs(mol_copy)
-                except:
+                except Exception:
                     if not silent:
-                        print(f"WARNING: Skipping poorly formed SMILES string: {Chem.MolToSmiles(mol_copy)}")
+                        print(
+                            f"WARNING: Skipping poorly formed SMILES string: {Chem.MolToSmiles(mol_copy)}"
+                        )
                     continue
 
                 atom = mol_copy.GetAtomWithIdx(idx)
 
-                explicit_bond_order_total = sum(
-                    [b.GetBondTypeAsDouble() for b in atom.GetBonds()]
-                )
+                explicit_bond_order_total = sum([b.GetBondTypeAsDouble() for b in atom.GetBonds()])
 
                 # Assign the protonation charge, with special care for
                 # nitrogens
@@ -657,7 +658,6 @@ class ProtectUnprotectFuncs:
         property for new molecules.
 
         :param rdkit.Chem.rdchem.Mol mol: The rdkit Mol object.
-        :type mol: The rdkit Mol object with atoms unprotected.
         """
 
         for atom in mol.GetAtoms():
@@ -800,7 +800,7 @@ class TestFuncs:
             "max_ph": -10000000,
             "pka_precision": 0.5,
             "label_states": True,
-            "silent": True
+            "silent": True,
         }
 
         for smi, protonated, deprotonated, category in smis:
@@ -840,7 +840,6 @@ class TestFuncs:
             TestFuncs.test_check(args, smi, [protonated, deprotonated], ["BOTH"])
 
         for smi, protonated, mix, deprotonated, category in smis_phos:
-
             avg_pka = average_pkas_phos[category][0]
             args["min_ph"] = avg_pka
             args["max_ph"] = avg_pka
@@ -926,16 +925,11 @@ class TestFuncs:
         for example in specific_examples:
             smi = example[0]
             for ph, expected_output in example[1:]:
-                output = Protonator(min_ph=ph, max_ph=ph, pka_precision=0, silent=True).protonate(smi)
+                output = Protonator(min_ph=ph, max_ph=ph, pka_precision=0, silent=True).protonate(
+                    smi
+                )
                 if output[0].strip() == expected_output:
-                    print(
-                        "(CORRECT) "
-                        + smi
-                        + " at pH "
-                        + str(ph)
-                        + " is "
-                        + output[0].strip()
-                    )
+                    print("(CORRECT) " + smi + " at pH " + str(ph) + " is " + output[0].strip())
                 else:
                     msg = (
                         smi
@@ -962,7 +956,10 @@ class TestFuncs:
         """
 
         output = list(Protonator(**args).protonate(smiles))
-        output = [[value] + output[1] if isinstance(output[1], list) else [value, output[1]] for value in output[0]]
+        output = [
+            [value] + output[1] if isinstance(output[1], list) else [value, output[1]]
+            for value in output[0]
+        ]
 
         num_states = len(expected_output)
 
@@ -1006,7 +1003,7 @@ class TestFuncs:
             raise Exception(msg)
 
         ph_range = sorted(list(set([args["min_ph"], args["max_ph"]])))
-        ph_range_str = "(" + " - ".join("{0:.2f}".format(n) for n in ph_range) + ")"
+        ph_range_str = "(" + " - ".join(f"{n:.2f}" for n in ph_range) + ")"
         print(
             "(CORRECT) "
             + ph_range_str.ljust(10)
@@ -1017,13 +1014,15 @@ class TestFuncs:
         )
 
 
-def run(smiles: Union[str, List[str], Chem.Mol, List[Chem.Mol]],
-        min_ph: float = 6.4,
-        max_ph: float = 8.4,
-        pka_precision: float = 1.0,
-        max_variants: int = 128,
-        label_states: bool = False,
-        silent: bool = False):
+def run(
+    smiles: str | list[str] | Chem.Mol | list[Chem.Mol],
+    min_ph: float = 6.4,
+    max_ph: float = 8.4,
+    pka_precision: float = 1.0,
+    max_variants: int = 128,
+    label_states: bool = False,
+    silent: bool = False,
+):
     """Run dimorphite-dl protonation on a list of molecules.
 
     :param smiles: List of SMILES of the molecules to be protonated
@@ -1037,20 +1036,25 @@ def run(smiles: Union[str, List[str], Chem.Mol, List[Chem.Mol]],
     if smiles is None:
         return [None]
     if not isinstance(smiles, (str, list)):
-        raise ValueError('smiles must be a string of characters or a list of strings')
+        raise ValueError("smiles must be a string of characters or a list of strings")
     if not isinstance(smiles, list):
         smiles = [smiles]
     # Convert to SMILES
     smiles = [x if isinstance(x, str) else Chem.MolToSmiles(x) for x in smiles]
     # Create protonator iterator
-    protonator = Protonator(min_ph=min_ph, max_ph=max_ph, pka_precision=pka_precision,
-                            max_variants=max_variants, label_states=label_states,
-                            silent=silent)
+    protonator = Protonator(
+        min_ph=min_ph,
+        max_ph=max_ph,
+        pka_precision=pka_precision,
+        max_variants=max_variants,
+        label_states=label_states,
+        silent=silent,
+    )
     res = []
     for smi in smiles:
         try:
             protonated_smis = protonator.protonate(smi)
             res.append(protonated_smis[0] if len(protonated_smis) == 1 else protonated_smis)
-        except:
+        except Exception:
             res.append(None)
     return res
