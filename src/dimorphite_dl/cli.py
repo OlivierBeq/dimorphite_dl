@@ -218,13 +218,16 @@ def main(
     if len(smiles) > 0:
         smiles_file = StringIO("\n".join(smiles))
     # Read in data in SMI format
-    smiles_and_data = LoadSMIFile(smiles_file, silent=silent)
+    smiles_and_data = list(LoadSMIFile(smiles_file, silent=silent))
     # Separate SMILES from data
-    all_smis, all_data = zip(
-        *[[smi_and_data["smiles"], smi_and_data["data"]] for smi_and_data in smiles_and_data],
-        strict=False,
-    )
-    all_smis, all_data = list(all_smis), list(all_data)
+    if smiles_and_data:
+        all_smis, all_data = zip(
+            *[[smi_and_data["smiles"], smi_and_data["data"]] for smi_and_data in smiles_and_data],
+            strict=False,
+        )
+        all_smis, all_data = list(all_smis), list(all_data)
+    else:
+        all_smis, all_data = [], []
     # Run protonation
     protonated_smiles = run(
         all_smis,
