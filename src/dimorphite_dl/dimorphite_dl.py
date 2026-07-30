@@ -722,9 +722,10 @@ def run(
     label_states: bool = False,
     silent: bool = False,
 ):
-    """Run dimorphite-dl protonation on a list of molecules.
+    """Run dimorphite-dl protonation on one or more molecules.
 
-    :param smiles: List of SMILES of the molecules to be protonated
+    :param smiles: A SMILES string, an RDKit Mol object, or a list thereof, of the
+        molecule(s) to be protonated
     :param min_ph: minimum pH to consider
     :param max_ph: maximum pH to consider
     :param pka_precision: pKa precision factor
@@ -734,8 +735,8 @@ def run(
     """
     if smiles is None:
         return [None]
-    if not isinstance(smiles, (str, list)):
-        raise ValueError("smiles must be a string of characters or a list of strings")
+    if not isinstance(smiles, (str, list, Chem.Mol)):
+        raise ValueError("smiles must be a string, an RDKit Mol object, or a list thereof")
     if not isinstance(smiles, list):
         smiles = [smiles]
     # Convert to SMILES

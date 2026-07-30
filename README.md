@@ -20,7 +20,7 @@ A fast, accurate, and modular open-source program for enumerating the ionization
 - ⚡ **Fast pH-range enumeration** — adds/removes hydrogens for any pH window you specify, with a tunable `--pka_precision` (number of standard deviations around each predicted pKa).
 - 🧬 **Broad functional-group coverage** — alcohols, amides, amines/anilines, azides, carboxyls, guanidines, imides, nitro groups, phosphates/phosphonates (including ATP/NAD-style polyphosphate chains), sulfates/sulfonates/sulfonamides, thiols, indoles/pyrroles, aromatic nitrogens, and more.
 - 🖥️ **CLI and 🐍 Python API** — run it as a `dimorphite` command, or call `dimorphite_dl.run(...)` directly from your own scripts.
-- 📄 **Flexible input** — SMILES from the command line, an `.smi` file, or a Python list of SMILES strings / RDKit `Mol` objects.
+- 📄 **Flexible input** — SMILES from the command line, an `.smi` file, or a Python SMILES string / RDKit `Mol` object (or list of either).
 - 🏷️ **Optional state labeling** — tag each output SMILES as `PROTONATED`, `DEPROTONATED`, or `BOTH`.
 - 🛡️ **Bounded output** — `--max_variants` caps the number of protonation variants generated per input compound.
 - ✅ **Modern tooling** — `pyproject.toml` packaging, a `pytest` test suite, `ruff` linting/formatting, and CI across Linux/macOS/Windows × Python 3.11-3.13.

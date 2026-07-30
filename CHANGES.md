@@ -11,6 +11,7 @@ Changes
 * Migrated packaging to `pyproject.toml` (PEP 621); dropped support for Python < 3.11.
 * Removed the CLI `--test` flag; tests now live under `tests/` and run with `pytest`.
 * Added a GitHub Actions CI workflow (lint + cross-platform test matrix) and adopted [ruff](https://docs.astral.sh/ruff/) for linting/formatting.
+* Fixed `run()` rejecting a single (non-list) RDKit `Mol` object, despite its type hint advertising support for it.
 
 
 1.2.4

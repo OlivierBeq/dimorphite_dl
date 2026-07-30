@@ -27,12 +27,10 @@ def test_run_rejects_non_str_non_list():
         run(123)
 
 
-def test_run_rejects_bare_mol_object():
-    # A single (non-list) Chem.Mol is not accepted, despite the type hint
-    # suggesting it should be -- this documents existing behavior.
+def test_run_single_mol_object():
     mol = Chem.MolFromSmiles("CCCN")
-    with pytest.raises(ValueError, match="smiles must be a string"):
-        run(mol, silent=True)
+    result = run(mol, min_ph=-3.0, max_ph=-2.0, silent=True)
+    assert result == ["CCC[NH3+]"]
 
 
 def test_run_single_smiles_string():
