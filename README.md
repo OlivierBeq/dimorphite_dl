@@ -55,7 +55,7 @@ Usage
 ```
 usage: dimorphite [-h] [--min_ph MIN] [--max_ph MAX] [--pka_precision PRE]
                   [--smiles SMI] [--smiles_file FILE] [--output_file FILE]
-                  [--max_variants MXV] [--label_states] [--silent] [--test]
+                  [--max_variants MXV] [--label_states] [--silent]
 
 Dimorphite 1.2.4: Creates models of appropriately protonated small moleucles.
 Apache 2.0 License. Copyright 2020 Jacob D. Durrant.
@@ -77,7 +77,6 @@ Options:
   --label_states       label protonated SMILES with target state (i.e.,
                        "DEPROTONATED", "PROTONATED", or "BOTH").
   --silent             do not print any messages to the screen
-  --test               run unit tests (for debugging)
 ```
 
 The default pH range is 6.4 to 8.4, considered biologically relevant pH.
@@ -90,7 +89,6 @@ CLI usage examples
   dimorphite --smiles "CCC(=O)O" --min_ph -3.0 --max_ph -2.0
   dimorphite --smiles "CCCN" --min_ph -3.0 --max_ph -2.0 --output_file output.smi
   dimorphite --smiles_file sample_molecules.smi --pka_precision 2.0 --label_states
-  dimorphite --test
 ```
 
 Advanced Usage
@@ -115,6 +113,15 @@ dimorphite_dl.run(["C[C@](F)(Br)CC(O)=O", "CCCCCN"],
                   min_ph=5.0,
                   max_ph=9.0,
                   silent=True)
+```
+
+Running the tests
+------------------
+
+From a source checkout:
+```bash
+pip install -e ".[test]"
+pytest
 ```
 
 Caveats

@@ -23,8 +23,7 @@ examples = """Examples:
     dimorphite --smiles_file sample_molecules.smi
     dimorphite --smiles "CCC(=O)O" --min_ph -3.0 --max_ph -2.0
     dimorphite --smiles "CCCN" --min_ph -3.0 --max_ph -2.0 --output_file output.smi
-    dimorphite --smiles_file sample_molecules.smi --pka_precision 2.0 --label_states
-    dimorphite --test"""
+    dimorphite --smiles_file sample_molecules.smi --pka_precision 2.0 --label_states"""
 
 
 class Mutex(click.Option):
@@ -104,7 +103,6 @@ class SpecialEpilog(click.Group):
             "[--max_variants MXV]",
             "[--label_states]",
             "[--silent]",
-            "[--test]",
         ]
         formatter.write_usage(ctx.command_path, " ".join(pieces))
         formatter.write_text(" ")
@@ -150,7 +148,7 @@ class SpecialEpilog(click.Group):
     type=str,
     required=True,
     cls=Mutex,
-    not_required_if=["smiles_file", "test"],
+    not_required_if=["smiles_file"],
     help="SMILES string to protonate",
     multiple=True,
 )
@@ -160,7 +158,7 @@ class SpecialEpilog(click.Group):
     type=str,
     required=True,
     cls=Mutex,
-    not_required_if=["smiles", "test"],
+    not_required_if=["smiles"],
     help="file that contains SMILES strings to protonate",
 )
 @click.option(
@@ -192,9 +190,6 @@ class SpecialEpilog(click.Group):
     default=False,
     help="do not print any messages to the screen",
 )
-@click.option(
-    "--test", is_flag=True, required=False, default=False, help="run unit tests (for debugging)"
-)
 def main(
     min_ph: float = 6.4,
     max_ph: float = 8.4,
@@ -205,11 +200,7 @@ def main(
     max_variants: int = 128,
     label_states: bool = False,
     silent: bool = False,
-    test: bool = False,
 ):
-    if test:
-        TestFuncs.test()
-        return
     # Main part
     smiles = list(smiles)
     if len(smiles) > 0:

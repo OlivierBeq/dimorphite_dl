@@ -66,6 +66,7 @@ dimorphite_dl = ["*.smarts", "py.typed"]
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+extend-exclude = ["*.md"]  # don't reformat Python snippets embedded in docs
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "W", "C4"]
@@ -81,3 +82,6 @@ ignore = ["E501"]  # enforced by ruff format instead
 [tool.ruff.format]
 quote-style = "double"
 docstring-code-format = false  # keep reST docstrings untouched by the formatter
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
