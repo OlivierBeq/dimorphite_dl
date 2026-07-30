@@ -62,3 +62,18 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 dimorphite_dl = ["*.smarts", "py.typed"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W", "C4"]
+ignore = ["E501"]  # enforced by ruff format instead
+
+[tool.ruff.lint.per-file-ignores]
+"tests/data.py" = ["E501"]  # long aligned test-data tuples
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = false  # keep reST docstrings untouched by the formatter
