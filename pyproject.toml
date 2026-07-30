@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dimorphite-ojmb"
+dynamic = ["version"]
+description = "An open-source program for enumerating the ionization states of drug-like small molecules"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE.txt"]
+requires-python = ">=3.11"
+authors = [
+    { name = "Jacob D. Durrant" },
+]
+maintainers = [
+    { name = "Olivier J. M. Béquignon", email = "olivier.bequignon.maintainer@gmail.com" },
+]
+keywords = [
+    "Ionization",
+    "pH",
+    "Protonation",
+    "Modeling",
+    "Virtual screening",
+    "Drug discovery",
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Chemistry",
+]
+dependencies = [
+    "tqdm",
+    "rdkit",
+    "click>=8.0.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8", "pytest-cov"]
+dev = ["dimorphite-ojmb[test]", "ruff"]
+
+[project.urls]
+Homepage = "https://durrantlab.pitt.edu/dimorphite-dl/"
+Repository = "https://github.com/OlivierBeq/dimorphite_dl"
+Issues = "https://github.com/OlivierBeq/dimorphite_dl/issues"
+Changelog = "https://github.com/OlivierBeq/dimorphite_dl/blob/master/CHANGES.md"
+"Original project" = "https://git.durrantlab.pitt.edu/jdurrant/dimorphite_dl"
+
+[project.scripts]
+dimorphite = "dimorphite_dl.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "dimorphite_dl.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+dimorphite_dl = ["*.smarts", "py.typed"]

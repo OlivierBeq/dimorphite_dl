@@ -32,7 +32,7 @@ molecules. J Cheminform 11:14. doi:[10.1186/s13321-019-0336-9](https://www.doi.o
 Licensing
 ---------
 
-Dimorphite-DL is released under the Apache 2.0 license. See LICENCE.txt for
+Dimorphite-DL is released under the Apache 2.0 license. See LICENSE.txt for
 details.
 
 Installation
