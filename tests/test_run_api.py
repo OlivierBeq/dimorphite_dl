@@ -60,6 +60,15 @@ def test_run_molecule_with_no_protonation_sites():
     assert result == [(["C"], None)]
 
 
+def test_run_empty_smiles_string():
+    # RDKit treats "" as a valid, atom-less molecule rather than an error.
+    assert run("", silent=True) == [""]
+
+
+def test_run_empty_smiles_string_with_label_states():
+    assert run("", label_states=True, silent=True) == [([""], None)]
+
+
 def test_run_max_variants_limit_warning(capsys):
     smi = (
         "CCCC[C@@H](C(=O)N)NC(=O)[C@@H](NC(=O)[C@@H](NC(=O)[C@@H](NC(=O)[C@H](C(C)C)"

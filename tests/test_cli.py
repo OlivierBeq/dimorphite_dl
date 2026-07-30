@@ -202,3 +202,10 @@ def test_malformed_smiles_skipped_with_label_states():
     result = run_cli(["--smiles", "not_a_smiles", "--label_states", "--silent"])
     assert result.exit_code == 0
     assert result.output == ""
+
+
+def test_empty_smiles_string():
+    # RDKit treats "" as a valid, atom-less molecule rather than an error.
+    result = run_cli(["--smiles", "", "--silent"])
+    assert result.exit_code == 0
+    assert result.output.strip() == ""

@@ -324,10 +324,9 @@ class Protonator:
         # the site SHOULD be in (not the one it IS in per the SMILES string).
         # It's calculated based on the probablistic distributions obtained
         # during training.
-        protonation_sites = ProtSubstructFuncs.get_prot_sites_and_target_states(smiles, self.subs)
-        if len(protonation_sites) == 0:
-            return []
-        sites, mol_used_to_idx_sites = protonation_sites
+        sites, mol_used_to_idx_sites = ProtSubstructFuncs.get_prot_sites_and_target_states(
+            smiles, self.subs
+        )
 
         new_mols = [mol_used_to_idx_sites]
         if len(sites) > 0:

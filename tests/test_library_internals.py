@@ -16,7 +16,7 @@ from io import StringIO
 
 import pytest
 
-from dimorphite_dl.dimorphite_dl import LoadSMIFile, Protonator, UtilFuncs
+from dimorphite_dl.dimorphite_dl import LoadSMIFile, Protonator, ProtSubstructFuncs, UtilFuncs
 
 
 def test_convert_smiles_str_to_mol_rejects_none():
@@ -43,3 +43,20 @@ def test_load_smi_file_warns_on_malformed_line(capsys):
 def test_protonate_rejects_non_str_smiles():
     with pytest.raises(TypeError, match="only SMILES can be prepared"):
         Protonator(silent=True).protonate(123)
+
+
+def test_get_prot_sites_and_target_states_on_empty_molecule():
+    # RDKit treats "" as a valid, atom-less molecule rather than an error, so
+    # this must not raise and must still return the documented 2-tuple shape.
+    subs = Protonator(silent=True).subs
+    sites, mol = ProtSubstructFuncs.get_prot_sites_and_target_states("", subs)
+    assert sites == []
+    assert mol.GetNumAtoms() == 0
+
+
+def test_protonate_empty_molecule():
+    assert Protonator(silent=True).protonate("") == [""]
+
+
+def test_protonate_empty_molecule_with_label_states():
+    assert Protonator(silent=True, label_states=True).protonate("") == ([""], None)
