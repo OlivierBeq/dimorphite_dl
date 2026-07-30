@@ -15,6 +15,7 @@
 """This entry point allows the use of dimorphite-dl as a CLI."""
 
 import click
+from click import ParameterSource
 
 from .dimorphite_dl import *
 
@@ -45,9 +46,20 @@ class Mutex(click.Option):
         ).strip()
         super().__init__(*args, **kwargs)
 
+    @staticmethod
+    def _is_option_set(ctx, opts, param) -> bool:
+        """Whether ``param`` was actually supplied by the user, as opposed to
+        falling back to click's internal "not set" sentinel. Checking value
+        truthiness alone is not enough: since click 8.4, an option that was
+        never provided and has no default resolves to an ``UNSET`` sentinel
+        object, which is truthy.
+        """
+        value, source = param.consume_value(ctx, opts)
+        return bool(value) and source is not ParameterSource.DEFAULT
+
     def handle_parse_result(self, ctx, opts, args):
         """Override base method."""
-        current_opt: bool = self.consume_value(ctx, opts)[0]  # Obtain set value
+        current_opt = self._is_option_set(ctx, opts, self)  # Obtain set value
         for other_param in ctx.command.get_params(ctx):
             if other_param is self:  # Ignore the current parameter
                 continue
@@ -60,7 +72,7 @@ class Mutex(click.Option):
                 )
             ):
                 # Get value assigned to the other option
-                other_opt: bool = other_param.consume_value(ctx, opts)[0]
+                other_opt = self._is_option_set(ctx, opts, other_param)
                 if other_opt:
                     if current_opt:
                         raise click.UsageError(
