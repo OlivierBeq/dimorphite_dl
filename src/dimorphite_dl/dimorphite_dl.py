@@ -11,6 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# This file has been modified from the original by Olivier J. M. Béquignon,
+# 2022-2026, as part of the dimorphite-ojmb fork
+# (https://github.com/OlivierBeq/dimorphite_dl). See CHANGES.md for a
+# summary of changes.
 
 """
 This script identifies and enumerates the possible protonation sites of SMILES
